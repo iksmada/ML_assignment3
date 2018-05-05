@@ -10,7 +10,7 @@ from joblib import Parallel, delayed
 import multiprocessing
 
 
-def rescale(x, min_new=0., max_new =255., min_original=-1, max_original=-1):
+def rescale(x, min_new=0., max_new=255., min_original=-1, max_original=-1):
     """
         x numpy array like matrix
         if min_original or  max_original are not explict given,
@@ -23,9 +23,32 @@ def rescale(x, min_new=0., max_new =255., min_original=-1, max_original=-1):
     return ((max_new - min_new) / (max_original - min_original)) * (x - min_original) + min_new
 
 
-def feature_extract(sentence):
+def feature_extract(sentence, mydict):
+    features = []
+    words = sentence.split(" ")
+    for word in words:
+        if word in mydict.keys():
+            features.append(1)
+        else:
+            features.append(0)
 
-    return np.zeros(10)
+    return features
+
+
+def create_dict(sentences):
+    # count words freq
+    word_count = dict()
+    for sentence in sentences:
+        words = sentence.split(" ")
+        for word in words:
+            if word in word_count.keys():
+                word_count[word] = word_count[word] + 1
+            else:
+                word_count[word] = 1
+
+    # select n most common words
+
+    return word_count
 
 
 dates = []
@@ -38,13 +61,14 @@ with open('news_headlines.csv') as csvfile:
         dates.append(row[0])
         headlines.append(row[1])
 
+myDict = create_dict(headlines)
+
 num_cores = multiprocessing.cpu_count()
 
 trainSamples = Parallel(n_jobs=num_cores)(
-            delayed(feature_extract)(i) for i in headlines)
+    delayed(feature_extract)(headline, myDict) for headline in headlines)
 
-
-#X_train, X_test = model_selection.train_test_split(trainSamples, train_size=0.8)
+# X_train, X_test = model_selection.train_test_split(trainSamples, train_size=0.8)
 
 scores = []
 clusters = range(1, 10)
