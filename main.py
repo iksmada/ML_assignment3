@@ -1,3 +1,4 @@
+import operator
 from os import listdir, path, makedirs
 import csv
 
@@ -26,8 +27,8 @@ def rescale(x, min_new=0., max_new=255., min_original=-1, max_original=-1):
 def feature_extract(sentence, mydict):
     features = []
     words = sentence.split(" ")
-    for word in words:
-        if word in mydict.keys():
+    for key in mydict.keys():
+        if key in words:
             features.append(1)
         else:
             features.append(0)
@@ -47,8 +48,11 @@ def create_dict(sentences):
                 word_count[word] = 1
 
     # select n most common words
+    # sort by frequency
+    sorted_words = sorted(word_count.items(), key=operator.itemgetter(1), reverse=True)
+    selected_words = dict(sorted_words[:100])
 
-    return word_count
+    return selected_words
 
 
 dates = []
