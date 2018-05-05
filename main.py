@@ -42,8 +42,16 @@ trainSamples = Parallel(n_jobs=num_cores)(
             delayed(feature_extract)(i) for i in headlines)
 
 
-X_train, X_test, y_train, y_test = model_selection.train_test_split(trainSamples, train_size=0.8)
+#X_train, X_test = model_selection.train_test_split(trainSamples, train_size=0.8)
 
-cluster = cluster.k_means(X_train)
+scores = []
+for n in range(1,10):
+    # Mini batch is faster
+    # cluster = cluster.KMeans(n_clusters=n, n_jobs=-1)
+    cluster = cluster.MiniBatchKMeans(n_clusters=n)
+
+    cluster.fit(trainSamples)
+    # could score test set
+    scores.append(cluster.score(trainSamples))
 
 # print(metrics.accuracy_score(y_test, pred))
