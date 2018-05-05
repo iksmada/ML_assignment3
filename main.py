@@ -1,5 +1,5 @@
+import argparse
 import operator
-from os import listdir, path, makedirs
 import csv
 
 import numpy as np
@@ -50,10 +50,17 @@ def create_dict(sentences):
     # select n most common words
     # sort by frequency
     sorted_words = sorted(word_count.items(), key=operator.itemgetter(1), reverse=True)
-    selected_words = dict(sorted_words[:100])
+    selected_words = dict(sorted_words[:FEATURES])
 
     return selected_words
 
+
+parser = argparse.ArgumentParser(description='K-Means with headlines')
+parser.add_argument('-c', '--clusters', type=int, help='Max number of clusters to test', default=10)
+parser.add_argument('-f', '--features', type=int, help='Number of features per sample', default=10)
+args = vars(parser.parse_args())
+CLUSTERS = args["clusters"]
+FEATURES = args["features"]
 
 dates = []
 headlines = []
@@ -75,7 +82,7 @@ trainSamples = Parallel(n_jobs=num_cores)(
 # X_train, X_test = model_selection.train_test_split(trainSamples, train_size=0.8)
 
 scores = []
-clusters = range(1, 10)
+clusters = range(1, CLUSTERS)
 for n in clusters:
     # Mini batch is faster
     # model = cluster.KMeans(n_clusters=n, n_jobs=-1)
@@ -83,7 +90,7 @@ for n in clusters:
 
     model.fit(trainSamples)
     # could score test set
-    scores.append(model.score(trainSamples))
+    scores.append(model.inertia_)
 
 # plot
 plt.scatter(clusters, scores)
