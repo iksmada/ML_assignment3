@@ -1,10 +1,10 @@
 import argparse
 import operator
 import csv
+from time import time
 
 import numpy as np
-
-from sklearn import cluster, model_selection, metrics
+from sklearn import cluster, metrics
 import matplotlib.pyplot as plt
 
 from joblib import Parallel, delayed
@@ -81,20 +81,49 @@ trainSamples = Parallel(n_jobs=num_cores)(
 
 # X_train, X_test = model_selection.train_test_split(trainSamples, train_size=0.8)
 
-scores = []
-clusters = range(1, CLUSTERS)
+print(82 * '_')
+print('N Clusters\ttime\tinertia\tsilhouette\tvariance')
+costs = []
+silhouette_scores = []
+variances = []
+clusters = range(2, CLUSTERS)
 for n in clusters:
+    t0 = time()
     # Mini batch is faster
     # model = cluster.KMeans(n_clusters=n, n_jobs=-1)
     model = cluster.MiniBatchKMeans(n_clusters=n)
 
-    model.fit(trainSamples)
-    # could score test set
-    scores.append(model.inertia_)
+    distances = model.fit_transform(trainSamples)
 
-# plot
-plt.scatter(clusters, scores)
-plt.plot(clusters, scores)
+    # cost
+    cost = model.inertia_
+    #silloute score
+    silhouette = metrics.silhouette_score(trainSamples, model.labels_, sample_size=10000)
+    # variance
+    variance = 0
+    i = 0
+    for label in model.labels_:
+        variance = variance + distances[i][label]
+        i = i + 1
+
+    print('%-9s\t%.2fs\t%i\t%.3f\t%.3f'
+          % (str(n), (time() - t0), cost, silhouette, variance))
+    costs.append(cost)
+    silhouette_scores.append(silhouette)
+    variances.append(variance)
+
+    # plot
+plt.scatter(clusters, costs)
+plt.plot(clusters, costs)
 plt.show()
+
+plt.scatter(clusters, silhouette_scores)
+plt.plot(clusters, silhouette_scores)
+plt.show()
+
+plt.scatter(clusters, variances)
+plt.plot(clusters, variances)
+plt.show()
+
 
 # print(metrics.accuracy_score(y_test, pred))
