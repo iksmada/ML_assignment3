@@ -3,7 +3,6 @@ import operator
 import csv
 from time import time
 
-import numpy as np
 from sklearn import cluster, metrics
 import matplotlib.pyplot as plt
 
@@ -82,7 +81,7 @@ trainSamples = Parallel(n_jobs=num_cores)(
 # X_train, X_test = model_selection.train_test_split(trainSamples, train_size=0.8)
 
 print(82 * '_')
-print('N Clusters\ttime\tinertia\tsilhouette\tvariance')
+print('N Clusters\ttime\tinertia\tvariance\tsilhouette')
 costs = []
 silhouette_scores = []
 variances = []
@@ -107,7 +106,7 @@ for n in clusters:
         i = i + 1
 
     print('%-9s\t%.2fs\t%i\t%.3f\t%.3f'
-          % (str(n), (time() - t0), cost, silhouette, variance))
+          % (str(n), (time() - t0), cost, variance, silhouette))
     costs.append(cost)
     silhouette_scores.append(silhouette)
     variances.append(variance)
