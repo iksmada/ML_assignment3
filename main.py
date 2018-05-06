@@ -22,12 +22,26 @@ def rescale(x, min_new=0., max_new=255., min_original=-1, max_original=-1):
 
     return ((max_new - min_new) / (max_original - min_original)) * (x - min_original) + min_new
 
+def bigram_extract(sentence):
+    words = sentence.split(" ")
+    bi_grams = []
+    for i in range(len(words) + 1):
+        if i == 0:
+            bi = "<s> " + words[i]
+        elif i == len(words):
+            bi = words[i - 1] + " <s>"
+        else:
+            bi = words[i - 1] + " " + words[i]
+        bi_grams.append(bi)
+
+    return bi_grams
+
 
 def feature_extract(sentence, mydict):
     features = []
-    words = sentence.split(" ")
+    bi_grams = bigram_extract(sentence)
     for key in mydict.keys():
-        if key in words:
+        if key in bi_grams:
             features.append(1)
         else:
             features.append(0)
@@ -37,18 +51,18 @@ def feature_extract(sentence, mydict):
 
 def create_dict(sentences):
     # count words freq
-    word_count = dict()
+    bi_count = dict()
     for sentence in sentences:
-        words = sentence.split(" ")
-        for word in words:
-            if word in word_count.keys():
-                word_count[word] = word_count[word] + 1
+        bi_grams = bigram_extract(sentence)
+        for bi in bi_grams:
+            if bi in bi_count.keys():
+                bi_count[bi] = bi_count[bi] + 1
             else:
-                word_count[word] = 1
+                bi_count[bi] = 1
 
     # select n most common words
     # sort by frequency
-    sorted_words = sorted(word_count.items(), key=operator.itemgetter(1), reverse=True)
+    sorted_words = sorted(bi_count.items(), key=operator.itemgetter(1), reverse=True)
     selected_words = dict(sorted_words[:FEATURES])
 
     return selected_words
