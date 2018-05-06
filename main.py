@@ -128,14 +128,20 @@ for n in clusters:
     # plot
 plt.scatter(clusters, costs)
 plt.plot(clusters, costs)
+plt.title("Cost")
+plt.xlabel("Clusters")
 plt.show()
 
 plt.scatter(clusters, silhouette_scores)
 plt.plot(clusters, silhouette_scores)
+plt.title("Silhouette Score")
+plt.xlabel("Clusters")
 plt.show()
 
 plt.scatter(clusters, variances)
 plt.plot(clusters, variances)
+plt.title("Variance")
+plt.xlabel("Clusters")
 plt.show()
 
 
