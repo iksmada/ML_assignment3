@@ -22,24 +22,25 @@ def rescale(x, min_new=0., max_new=255., min_original=-1, max_original=-1):
 
     return ((max_new - min_new) / (max_original - min_original)) * (x - min_original) + min_new
 
-def bigram_extract(sentence):
-    words = sentence.split(" ")
-    bi_grams = []
-    for i in range(len(words) + 1):
-        if i == 0:
-            bi = "<s> " + words[i]
-        elif i == len(words):
-            bi = words[i - 1] + " <s>"
-        else:
-            bi = words[i - 1] + " " + words[i]
-        bi_grams.append(bi)
 
-    return bi_grams
+def ngram_extract(sentence, n=3):
+    # <s> marks start and end of sentence
+    sentence = "<s> " + sentence + " <s>"
+    words = sentence.split(" ")
+    n_grams = []
+    for i in range(len(words)-2):
+        entry = ""
+        for j in range(n):
+            entry = entry + words[i + j] + " "
+        # bi[:-1] -> delete space in the end
+        n_grams.append(entry[:-1])
+
+    return n_grams
 
 
 def feature_extract(sentence, mydict):
     features = []
-    bi_grams = bigram_extract(sentence)
+    bi_grams = ngram_extract(sentence, 2)
     for key in mydict.keys():
         if key in bi_grams:
             features.append(1)
@@ -53,7 +54,7 @@ def create_dict(sentences):
     # count words freq
     bi_count = dict()
     for sentence in sentences:
-        bi_grams = bigram_extract(sentence)
+        bi_grams = ngram_extract(sentence, 2)
         for bi in bi_grams:
             if bi in bi_count.keys():
                 bi_count[bi] = bi_count[bi] + 1
@@ -110,7 +111,7 @@ for n in clusters:
 
     # cost
     cost = model.inertia_
-    #silloute score
+    # silloute score
     silhouette = metrics.silhouette_score(trainSamples, model.labels_, sample_size=10000)
     # variance
     variance = 0
@@ -125,7 +126,7 @@ for n in clusters:
     silhouette_scores.append(silhouette)
     variances.append(variance)
 
-    # plot
+# plot
 plt.scatter(clusters, costs)
 plt.plot(clusters, costs)
 plt.title("Cost")
@@ -143,6 +144,5 @@ plt.plot(clusters, variances)
 plt.title("Variance")
 plt.xlabel("Clusters")
 plt.show()
-
 
 # print(metrics.accuracy_score(y_test, pred))
