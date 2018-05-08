@@ -9,6 +9,10 @@ import matplotlib.pyplot as plt
 from joblib import Parallel, delayed
 import multiprocessing
 
+from nltk.downloader import download
+from nltk.corpus import stopwords
+from nltk.stem.snowball import SnowballStemmer
+
 
 def rescale(x, min_new=0., max_new=255., min_original=-1, max_original=-1):
     """
@@ -26,9 +30,9 @@ def rescale(x, min_new=0., max_new=255., min_original=-1, max_original=-1):
 def ngram_extract(sentence, n=3):
     # <s> marks start and end of sentence
     sentence = "<s> " + sentence + " <s>"
-    words = sentence.split(" ")
+    words = sentence.split()
     n_grams = []
-    for i in range(len(words)-n):
+    for i in range(len(words) - n):
         entry = ""
         for j in range(n):
             entry = entry + words[i + j] + " "
@@ -69,6 +73,15 @@ def create_dict(sentences):
     return selected_words
 
 
+def remove_stopwords(sentence, stop):
+    cleaned = ""
+    for word in sentence.split():
+        if word not in stop:
+            cleaned = cleaned + " " + word
+    # remove space in the begging
+    return cleaned[1:]
+
+
 parser = argparse.ArgumentParser(description='K-Means with headlines')
 parser.add_argument('-c', '--clusters', type=int, help='Max number of clusters to test', default=10)
 parser.add_argument('-f', '--features', type=int, help='Number of features per sample', default=10)
@@ -79,6 +92,9 @@ CLUSTERS = args["clusters"]
 FEATURES = args["features"]
 NGRAM = args["ngram"]
 
+download('stopwords')
+stop = set(stopwords.words('english'))
+stemmer = SnowballStemmer("english")
 dates = []
 headlines = []
 with open('news_headlines.csv') as csvfile:
@@ -87,7 +103,9 @@ with open('news_headlines.csv') as csvfile:
     next(rows, None)
     for row in rows:
         dates.append(row[0])
-        headlines.append(row[1])
+        clean_sentence = remove_stopwords(row[1], stop)
+        stemmed_sentence = stemmer.stem(clean_sentence)
+        headlines.append(stemmed_sentence)
 
 myDict = create_dict(headlines)
 
