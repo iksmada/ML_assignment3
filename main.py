@@ -28,7 +28,7 @@ def ngram_extract(sentence, n=3):
     sentence = "<s> " + sentence + " <s>"
     words = sentence.split(" ")
     n_grams = []
-    for i in range(len(words)-2):
+    for i in range(len(words)-n):
         entry = ""
         for j in range(n):
             entry = entry + words[i + j] + " "
@@ -40,7 +40,7 @@ def ngram_extract(sentence, n=3):
 
 def feature_extract(sentence, mydict):
     features = []
-    bi_grams = ngram_extract(sentence, 2)
+    bi_grams = ngram_extract(sentence, NGRAM)
     for key in mydict.keys():
         if key in bi_grams:
             features.append(1)
@@ -54,7 +54,7 @@ def create_dict(sentences):
     # count words freq
     bi_count = dict()
     for sentence in sentences:
-        bi_grams = ngram_extract(sentence, 2)
+        bi_grams = ngram_extract(sentence, NGRAM)
         for bi in bi_grams:
             if bi in bi_count.keys():
                 bi_count[bi] = bi_count[bi] + 1
@@ -72,9 +72,12 @@ def create_dict(sentences):
 parser = argparse.ArgumentParser(description='K-Means with headlines')
 parser.add_argument('-c', '--clusters', type=int, help='Max number of clusters to test', default=10)
 parser.add_argument('-f', '--features', type=int, help='Number of features per sample', default=10)
+parser.add_argument('-n', '--ngram', type=int, help='Number of word per gram', default=2)
+
 args = vars(parser.parse_args())
 CLUSTERS = args["clusters"]
 FEATURES = args["features"]
+NGRAM = args["ngram"]
 
 dates = []
 headlines = []
@@ -100,7 +103,7 @@ print('N Clusters\ttime\tinertia\tvariance\tsilhouette')
 costs = []
 silhouette_scores = []
 variances = []
-clusters = range(2, CLUSTERS)
+clusters = range(2, CLUSTERS + 1)
 for n in clusters:
     t0 = time()
     # Mini batch is faster
