@@ -29,8 +29,8 @@ def rescale(x, min_new=0., max_new=255., min_original=-1, max_original=-1):
 
 
 def ngram_extract(sentence, n=3):
-    # <s> marks start and end of sentence
-    sentence = "<s> " + sentence + " <s>"
+    # <s> marks start and end of sentence - WORSE
+    # sentence = "<s> " + sentence + " <s>"
     words = sentence.split()
     n_grams = []
     for i in range(len(words) - n):
