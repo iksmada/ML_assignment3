@@ -3,6 +3,7 @@ import operator
 import csv
 from time import time
 
+import numpy as np
 from sklearn import cluster, metrics
 import matplotlib.pyplot as plt
 
@@ -109,6 +110,9 @@ with open('news_headlines.csv') as csvfile:
 
 myDict = create_dict(headlines)
 
+print("Most common n grams used as features")
+print(myDict.keys())
+
 num_cores = multiprocessing.cpu_count()
 
 trainSamples = Parallel(n_jobs=num_cores)(
@@ -118,11 +122,10 @@ trainSamples = Parallel(n_jobs=num_cores)(
 
 print(82 * '_')
 print('N Clusters\ttime\tinertia\tvariance\tsilhouette')
-costs = []
-silhouette_scores = []
-variances = []
 clusters = range(2, CLUSTERS + 1)
-for n in clusters:
+
+
+def run_Kmeans(n):
     t0 = time()
     # Mini batch is faster
     # model = cluster.KMeans(n_clusters=n, n_jobs=-1)
@@ -132,8 +135,8 @@ for n in clusters:
 
     # cost
     cost = model.inertia_
-    # silloute score
-    silhouette = metrics.silhouette_score(trainSamples, model.labels_, sample_size=10000)
+    # silhoutte score
+    silhouette = metrics.silhouette_score(trainSamples, model.labels_, sample_size=5000)
     # variance
     variance = 0
     i = 0
@@ -143,9 +146,17 @@ for n in clusters:
 
     print('%-9s\t%.2fs\t%i\t%.3f\t%.3f'
           % (str(n), (time() - t0), cost, variance, silhouette))
-    costs.append(cost)
-    silhouette_scores.append(silhouette)
-    variances.append(variance)
+
+    return [cost, silhouette, variance]
+
+
+stats = Parallel(n_jobs=num_cores)(
+    delayed(run_Kmeans)(n) for n in clusters)
+
+stats = np.array(stats)
+costs = stats[:, 0]
+silhouette_scores = stats[:, 1]
+variances = stats[:, 2]
 
 # plot
 plt.scatter(clusters, costs)
