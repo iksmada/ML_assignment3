@@ -87,11 +87,16 @@ parser = argparse.ArgumentParser(description='K-Means with headlines')
 parser.add_argument('-c', '--clusters', type=int, help='Max number of clusters to test', default=10)
 parser.add_argument('-f', '--features', type=int, help='Number of features per sample', default=10)
 parser.add_argument('-n', '--ngram', type=int, help='Number of word per gram', default=2)
+parser.add_argument('--no-stemmer', help='Disable stemmer', action='store_false')
+parser.add_argument('--no-stop', help='Disable stop words', action='store_false')
 
 args = vars(parser.parse_args())
 CLUSTERS = args["clusters"]
 FEATURES = args["features"]
 NGRAM = args["ngram"]
+STEMMER = args["no_stemmer"]
+STOPWORDS = args["no_stop"]
+
 
 download('stopwords')
 stop = set(stopwords.words('english'))
@@ -104,9 +109,12 @@ with open('news_headlines.csv') as csvfile:
     next(rows, None)
     for row in rows:
         dates.append(row[0])
-        clean_sentence = remove_stopwords(row[1], stop)
-        stemmed_sentence = stemmer.stem(clean_sentence)
-        headlines.append(stemmed_sentence)
+        sentence = row[1]
+        if STOPWORDS:
+            sentence = remove_stopwords(sentence, stop)
+        if STEMMER:
+            sentence = stemmer.stem(sentence)
+        headlines.append(sentence)
 
 myDict = create_dict(headlines)
 
