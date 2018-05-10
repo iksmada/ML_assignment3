@@ -14,6 +14,8 @@ from nltk.downloader import download
 from nltk.corpus import stopwords
 from nltk.stem.snowball import SnowballStemmer
 
+from wordcloud import WordCloud
+
 
 def rescale(x, min_new=0., max_new=255., min_original=-1, max_original=-1):
     """
@@ -103,24 +105,28 @@ stop = set(stopwords.words('english'))
 stemmer = SnowballStemmer("english")
 num_cores = multiprocessing.cpu_count()
 
+
 def parse_csv(row):
-    sentence = row[1]
+    sentence = row
     if STOPWORDS:
         sentence = remove_stopwords(sentence, stop)
     if STEMMER:
         sentence = stemmer.stem(sentence)
 
-    return [row[0], sentence]
+    return sentence
 
 
 with open('news_headlines.csv') as csvfile:
     rows = csv.reader(csvfile)
     # jump header
     next(rows, None)
-    fileParsed = Parallel(n_jobs=num_cores)(
-        delayed(parse_csv)(row) for row in rows)
+    dates, original = zip(*rows)
+    if not STOPWORDS and not STEMMER:
+        headlines = original
+    else:
+        headlines = Parallel(n_jobs=num_cores)(
+            delayed(parse_csv)(row) for row in original)
 
-    dates, headlines = zip(*fileParsed)
 
 dictName = "dict-n" + str(NGRAM) + "f" + str(FEATURES)
 try:
@@ -192,5 +198,30 @@ plt.plot(clusters, variances)
 plt.title("Variance")
 plt.xlabel("Clusters")
 plt.show()
+
+# print word cloud
+n = int(input("For which number of clusters do you want to print the word cloud? From 2 to " + str(CLUSTERS+1)))
+model = cluster.MiniBatchKMeans(n_clusters=n)
+labels = model.fit_predict(trainSamples)
+
+# separate clusters
+clusters = dict()
+i = 0
+for label in labels:
+    if label not in clusters:
+        clusters[label] = []
+    clusters[label].append(i)
+    i = i + 1
+
+
+# make word clouds out of each cluster
+wordclouds = []
+for idx in clusters:
+    wordclouds.append(WordCloud().generate(" ".join(operator.itemgetter(*clusters[idx])(original))))
+    plt.imshow(wordclouds[idx], interpolation='bilinear')
+    plt.axis("off")
+    plt.title("Cluster " + str(idx))
+    # plt.savefig("graphs/wordcloud-(2,2) " + str(i) + "-" + str(idx))
+    plt.show()
 
 # print(metrics.accuracy_score(y_test, pred))
