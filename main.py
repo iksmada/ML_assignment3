@@ -1,9 +1,9 @@
 import argparse
 import operator
 import csv
+import pickle
 from time import time
 
-import numpy as np
 from sklearn import cluster, metrics
 import matplotlib.pyplot as plt
 
@@ -101,27 +101,38 @@ STOPWORDS = args["no_stop"]
 download('stopwords')
 stop = set(stopwords.words('english'))
 stemmer = SnowballStemmer("english")
-dates = []
-headlines = []
+num_cores = multiprocessing.cpu_count()
+
+def parse_csv(row):
+    sentence = row[1]
+    if STOPWORDS:
+        sentence = remove_stopwords(sentence, stop)
+    if STEMMER:
+        sentence = stemmer.stem(sentence)
+
+    return [row[0], sentence]
+
+
 with open('news_headlines.csv') as csvfile:
     rows = csv.reader(csvfile)
     # jump header
     next(rows, None)
-    for row in rows:
-        dates.append(row[0])
-        sentence = row[1]
-        if STOPWORDS:
-            sentence = remove_stopwords(sentence, stop)
-        if STEMMER:
-            sentence = stemmer.stem(sentence)
-        headlines.append(sentence)
+    fileParsed = Parallel(n_jobs=num_cores)(
+        delayed(parse_csv)(row) for row in rows)
 
-myDict = create_dict(headlines)
+    dates, headlines = zip(*fileParsed)
+
+dictName = "dict-n" + str(NGRAM) + "f" + str(FEATURES)
+try:
+    with open('obj/' + dictName + '.pkl', 'rb') as f:
+        myDict = pickle.load(f)
+except EnvironmentError: # parent of IOError, OSError *and* WindowsError where available
+    myDict = create_dict(headlines)
+    with open('obj/' + dictName + '.pkl', 'w+b') as f:
+        pickle.dump(myDict, f, pickle.HIGHEST_PROTOCOL)
 
 print("Most common n grams used as features")
 print(myDict.keys())
-
-num_cores = multiprocessing.cpu_count()
 
 trainSamples = Parallel(n_jobs=num_cores)(
     delayed(feature_extract)(headline, myDict) for headline in headlines)
@@ -130,7 +141,7 @@ trainSamples = Parallel(n_jobs=num_cores)(
 
 print(82 * '_')
 print('N Clusters\ttime\tinertia\tvariance\tsilhouette')
-clusters = range(2, CLUSTERS + 1)
+clusters = range(3, CLUSTERS + 1)
 
 
 def run_Kmeans(n):
@@ -161,10 +172,7 @@ def run_Kmeans(n):
 stats = Parallel(n_jobs=num_cores)(
     delayed(run_Kmeans)(n) for n in clusters)
 
-stats = np.array(stats)
-costs = stats[:, 0]
-silhouette_scores = stats[:, 1]
-variances = stats[:, 2]
+costs, silhouette_scores, variances = zip(*stats)
 
 # plot
 plt.scatter(clusters, costs)
