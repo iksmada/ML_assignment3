@@ -147,7 +147,7 @@ trainSamples = Parallel(n_jobs=num_cores)(
 
 print(82 * '_')
 print('N Clusters\ttime\tinertia\tvariance\tsilhouette')
-clusters = range(3, CLUSTERS + 1)
+clusters = range(max(2, NGRAM), CLUSTERS + 1)
 
 
 def run_Kmeans(n):
@@ -161,7 +161,10 @@ def run_Kmeans(n):
     # cost
     cost = model.inertia_
     # silhoutte score
-    silhouette = metrics.silhouette_score(trainSamples, model.labels_, sample_size=5000)
+    try:
+        silhouette = metrics.silhouette_score(trainSamples, model.labels_, sample_size=5000)
+    except ValueError:
+        silhouette = 1
     # variance
     variance = 0
     i = 0
@@ -190,6 +193,8 @@ plt.show()
 plt.scatter(clusters, silhouette_scores)
 plt.plot(clusters, silhouette_scores)
 plt.title("Silhouette Score")
+axes = plt.gca()
+axes.set_ylim([axes.get_ylim()[0], 1.0])
 plt.xlabel("Clusters")
 plt.show()
 
