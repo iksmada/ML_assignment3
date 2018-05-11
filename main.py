@@ -4,6 +4,7 @@ import csv
 import pickle
 from time import time
 
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn import cluster, metrics
 import matplotlib.pyplot as plt
 
@@ -91,6 +92,7 @@ parser.add_argument('-f', '--features', type=int, help='Number of features per s
 parser.add_argument('-n', '--ngram', type=int, help='Number of word per gram', default=2)
 parser.add_argument('--no-stemmer', help='Disable stemmer', action='store_false')
 parser.add_argument('--no-stop', help='Disable stop words', action='store_false')
+parser.add_argument('--no-tfidf', help='Disable tfidf - only freq', action='store_false')
 
 args = vars(parser.parse_args())
 CLUSTERS = args["clusters"]
@@ -98,6 +100,7 @@ FEATURES = args["features"]
 NGRAM = args["ngram"]
 STEMMER = args["no_stemmer"]
 STOPWORDS = args["no_stop"]
+TFIDF = args["no_tfidf"]
 
 
 download('stopwords')
@@ -127,21 +130,26 @@ with open('news_headlines.csv') as csvfile:
         headlines = Parallel(n_jobs=num_cores)(
             delayed(parse_csv)(row) for row in original)
 
+if TFIDF:
+    # tf-idf
+    tf_transformer = TfidfVectorizer(max_features=FEATURES)
+    trainSamples = tf_transformer.fit_transform(headlines)
+else:
 
-dictName = "dict-n" + str(NGRAM) + "f" + str(FEATURES)
-try:
-    with open('obj/' + dictName + '.pkl', 'rb') as f:
-        myDict = pickle.load(f)
-except EnvironmentError: # parent of IOError, OSError *and* WindowsError where available
-    myDict = create_dict(headlines)
-    with open('obj/' + dictName + '.pkl', 'w+b') as f:
-        pickle.dump(myDict, f, pickle.HIGHEST_PROTOCOL)
+    dictName = "dict-n" + str(NGRAM) + "f" + str(FEATURES)
+    try:
+        with open('obj/' + dictName + '.pkl', 'rb') as f:
+            myDict = pickle.load(f)
+    except EnvironmentError: # parent of IOError, OSError *and* WindowsError where available
+        myDict = create_dict(headlines)
+        with open('obj/' + dictName + '.pkl', 'w+b') as f:
+            pickle.dump(myDict, f, pickle.HIGHEST_PROTOCOL)
 
-print("Most common n grams used as features")
-print(myDict.keys())
+    print("Most common n grams used as features")
+    print(myDict.keys())
 
-trainSamples = Parallel(n_jobs=num_cores)(
-    delayed(feature_extract)(headline, myDict) for headline in headlines)
+    trainSamples = Parallel(n_jobs=num_cores)(
+        delayed(feature_extract)(headline, myDict) for headline in headlines)
 
 # X_train, X_test = model_selection.train_test_split(trainSamples, train_size=0.8)
 
