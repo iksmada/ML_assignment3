@@ -104,6 +104,7 @@ parser.add_argument('--no-stop', help='Disable stop words', action='store_false'
 parser.add_argument('--no-tfidf', help='Disable tfidf - only freq', action='store_false')
 
 args = vars(parser.parse_args())
+print(args)
 CLUSTERS = args["clusters"]
 FEATURES = args["features"]
 NGRAM = args["ngram"]
@@ -155,10 +156,12 @@ else:
     try:
         with open('obj/' + dictName + '.pkl', 'rb') as f:
             myDict = pickle.load(f)
+            print("Loaded: " + dictName)
     except EnvironmentError: # parent of IOError, OSError *and* WindowsError where available
         myDict = create_dict(unique_headlines)
         with open('obj/' + dictName + '.pkl', 'w+b') as f:
             pickle.dump(myDict, f, pickle.HIGHEST_PROTOCOL)
+            print("Saved: " + dictName)
 
     trainSamples = Parallel(n_jobs=num_cores)(
         delayed(feature_extract)(headline, myDict) for headline in unique_headlines)
@@ -195,7 +198,7 @@ def run_Kmeans(n):
         variance = variance + distances[i][label]
         i = i + 1
 
-    print('%-9s\t%.2fs\t%i\t%.3f\t%.3f'
+    print('%-9s\t%.2fs\t%7i\t%8.0f\t%5.3f'
           % (str(n), (time() - t0), cost, variance, silhouette))
 
     return [cost, silhouette, variance]
