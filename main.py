@@ -242,14 +242,14 @@ i = 0
 for label in labels:
     if label not in clusters:
         clusters[label] = []
-    clusters[label].append(headlines.index(unique_headlines[i]))
+    clusters[label].append(i)
     i = i + 1
 
 
 # make word clouds out of each cluster
 wordclouds = []
 for idx in clusters:
-    wordclouds.append(WordCloud().generate(" ".join(operator.itemgetter(*clusters[idx])(original))))
+    wordclouds.append(WordCloud().generate(" ".join(operator.itemgetter(*clusters[idx])(unique_headlines))))
     plt.imshow(wordclouds[idx], interpolation='bilinear')
     plt.axis("off")
     plt.title("Cluster " + str(idx))
