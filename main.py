@@ -97,6 +97,8 @@ parser = argparse.ArgumentParser(description='K-Means with headlines')
 parser.add_argument('-c', '--clusters', type=int, help='Max number of clusters to test', default=10)
 parser.add_argument('-f', '--features', type=int, help='Number of features per sample', default=10)
 parser.add_argument('-n', '--ngram', type=int, help='Number of word per gram', default=2)
+parser.add_argument('-a', '--analyzer', type=str, help='Analyser of Ngram as word or char',
+                    default='word', choices=("word", "char"))
 parser.add_argument('--no-stemmer', help='Disable stemmer', action='store_false')
 parser.add_argument('--no-stop', help='Disable stop words', action='store_false')
 parser.add_argument('--no-tfidf', help='Disable tfidf - only freq', action='store_false')
@@ -105,6 +107,7 @@ args = vars(parser.parse_args())
 CLUSTERS = args["clusters"]
 FEATURES = args["features"]
 NGRAM = args["ngram"]
+ANALYZER = args["analyzer"]
 STEMMER = args["no_stemmer"]
 STOPWORDS = args["no_stop"]
 TFIDF = args["no_tfidf"]
@@ -143,7 +146,7 @@ print("Unique reduced from " + str(len(headlines)) + " to " + str(len(unique_hea
 
 if TFIDF:
     # tf-idf
-    tf_transformer = TfidfVectorizer(max_features=FEATURES, ngram_range=(NGRAM, NGRAM), analyzer='word')
+    tf_transformer = TfidfVectorizer(max_features=FEATURES, ngram_range=(NGRAM, NGRAM), analyzer=ANALYZER)
     trainSamples = tf_transformer.fit_transform(unique_headlines)
     myDict = tf_transformer.vocabulary_
 else:
