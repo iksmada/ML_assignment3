@@ -141,7 +141,7 @@ with open('news_headlines.csv') as csvfile:
             delayed(parse_csv)(row) for row in original)
 
 # to avoid outliers
-unique_headlines = set(headlines)
+unique_headlines = list(set(headlines))
 print("Unique reduced from " + str(len(headlines)) + " to " + str(len(unique_headlines)) + " samples")
 
 if TFIDF:
