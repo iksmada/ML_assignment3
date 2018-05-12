@@ -180,7 +180,7 @@ def run_Kmeans(n):
     t0 = time()
     # Mini batch is faster
     # model = cluster.KMeans(n_clusters=n, n_jobs=-1)
-    model = cluster.MiniBatchKMeans(n_clusters=n)
+    model = cluster.KMeans(n_clusters=n, init='k-means++', max_iter=300, n_init=10, random_state=0, n_jobs=1)
 
     distances = model.fit_transform(trainSamples)
 
@@ -232,7 +232,8 @@ plt.show()
 
 # print word cloud
 n = int(input("For which number of clusters do you want to print the word cloud? From 2 to " + str(CLUSTERS+1)))
-model = cluster.MiniBatchKMeans(n_clusters=n)
+print("Re training for %d clusters" % n)
+model = cluster.KMeans(n_clusters=n, init='k-means++', max_iter=500, n_init=10, random_state=0, n_jobs=-1)
 labels = model.fit_predict(trainSamples)
 
 # separate clusters
