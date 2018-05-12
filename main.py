@@ -137,10 +137,14 @@ with open('news_headlines.csv') as csvfile:
         headlines = Parallel(n_jobs=num_cores)(
             delayed(parse_csv)(row) for row in original)
 
+# to avoid outliers
+unique_headlines = set(headlines)
+print("Unique reduced from " + str(len(headlines)) + " to " + str(len(unique_headlines)) + " samples")
+
 if TFIDF:
     # tf-idf
     tf_transformer = TfidfVectorizer(max_features=FEATURES, ngram_range=(NGRAM, NGRAM), analyzer='word')
-    trainSamples = tf_transformer.fit_transform(headlines)
+    trainSamples = tf_transformer.fit_transform(unique_headlines)
     myDict = tf_transformer.vocabulary_
 else:
 
@@ -149,12 +153,12 @@ else:
         with open('obj/' + dictName + '.pkl', 'rb') as f:
             myDict = pickle.load(f)
     except EnvironmentError: # parent of IOError, OSError *and* WindowsError where available
-        myDict = create_dict(headlines)
+        myDict = create_dict(unique_headlines)
         with open('obj/' + dictName + '.pkl', 'w+b') as f:
             pickle.dump(myDict, f, pickle.HIGHEST_PROTOCOL)
 
     trainSamples = Parallel(n_jobs=num_cores)(
-        delayed(feature_extract)(headline, myDict) for headline in headlines)
+        delayed(feature_extract)(headline, myDict) for headline in unique_headlines)
 
 print("Most common n grams used as features, total " + str(len(myDict)))
 print(myDict.keys())
@@ -231,7 +235,7 @@ i = 0
 for label in labels:
     if label not in clusters:
         clusters[label] = []
-    clusters[label].append(i)
+    clusters[label].append(headlines.index(unique_headlines[i]))
     i = i + 1
 
 
