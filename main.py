@@ -132,8 +132,9 @@ with open('news_headlines.csv') as csvfile:
 
 if TFIDF:
     # tf-idf
-    tf_transformer = TfidfVectorizer(max_features=FEATURES)
+    tf_transformer = TfidfVectorizer(max_features=FEATURES, ngram_range=(NGRAM, NGRAM), analyzer='word')
     trainSamples = tf_transformer.fit_transform(headlines)
+    myDict = tf_transformer.vocabulary_
 else:
 
     dictName = "dict-n" + str(NGRAM) + "f" + str(FEATURES)
@@ -145,11 +146,11 @@ else:
         with open('obj/' + dictName + '.pkl', 'w+b') as f:
             pickle.dump(myDict, f, pickle.HIGHEST_PROTOCOL)
 
-    print("Most common n grams used as features")
-    print(myDict.keys())
-
     trainSamples = Parallel(n_jobs=num_cores)(
         delayed(feature_extract)(headline, myDict) for headline in headlines)
+
+print("Most common n grams used as features, total " + str(len(myDict)))
+print(myDict.keys())
 
 # X_train, X_test = model_selection.train_test_split(trainSamples, train_size=0.8)
 
