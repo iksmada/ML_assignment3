@@ -77,13 +77,20 @@ def create_dict(sentences):
     return selected_words
 
 
-def remove_stopwords(sentence, stop):
-    cleaned = ""
+def remove_stopwords(sentence):
+    cleaned = []
     for word in sentence.split():
         if word not in stop:
-            cleaned = cleaned + " " + word
+            cleaned.append(word)
+    return " ".join(cleaned)
+
+
+def extract_stemmer(sentence):
+    cleaned = []
+    for word in sentence.split():
+        cleaned.append(stemmer.stem(word))
     # remove space in the begging
-    return cleaned[1:]
+    return " ".join(cleaned)
 
 
 parser = argparse.ArgumentParser(description='K-Means with headlines')
@@ -112,9 +119,9 @@ num_cores = multiprocessing.cpu_count()
 def parse_csv(row):
     sentence = row
     if STOPWORDS:
-        sentence = remove_stopwords(sentence, stop)
+        sentence = remove_stopwords(sentence)
     if STEMMER:
-        sentence = stemmer.stem(sentence)
+        sentence = extract_stemmer(sentence)
 
     return sentence
 
