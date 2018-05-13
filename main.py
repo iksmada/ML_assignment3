@@ -131,7 +131,7 @@ def parse_csv(row):
     if STEMMER:
         sentence = extract_stemmer(sentence)
     if NORMALIZE:
-        sentence = re.sub("[0-9]+(\.[0-9]+)?[^\s]*", "<number>", sentence)
+        sentence = re.sub("[0-9]+(\.[0-9]+)?[^\s]*", "<tagnumber>", sentence)
 
     return sentence
 
