@@ -195,7 +195,7 @@ print(myDict)
 
 print(82 * '_')
 print('N Clusters\ttime\tinertia\tvariance\tsilhouette')
-clusters = range(max(2, NGRAM), CLUSTERS + 1)
+clusters = range(2, CLUSTERS + 1)
 
 
 def run_Kmeans(n):
@@ -220,8 +220,9 @@ def run_Kmeans(n):
     variance = np.std(count)
 
 
-    print('%-9s\t%.2fs\t%7i\t%8.0f\t%8.3f'
-          % (str(n), (time() - t0), cost, variance, silhouette))
+
+    print('%-9s\t%.2fs\t%7i\t%8i\t%10.3f'
+          % (str(n), (time() - t0), cost, int(variance), silhouette))
 
     return [cost, silhouette, variance]
 
@@ -253,7 +254,7 @@ plt.xlabel("Clusters")
 plt.show()
 
 # print word cloud
-n = int(input("For which number of clusters do you want to print the word cloud? From 2 to " + str(CLUSTERS+1)))
+n = int(input("For which number of clusters do you want to print the word cloud? From 2 to " + str(CLUSTERS)))
 print("Re training for %d clusters" % n)
 model = cluster.KMeans(n_clusters=n, init='k-means++', max_iter=500, n_init=10, random_state=0, n_jobs=-1)
 labels = model.fit_predict(trainSamples)
