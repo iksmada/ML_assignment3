@@ -2,6 +2,7 @@ import argparse
 import operator
 import csv
 import pickle
+import re
 from time import time
 import numpy as np
 
@@ -103,6 +104,7 @@ parser.add_argument('-a', '--analyzer', type=str, help='Analyser of Ngram as wor
 parser.add_argument('--no-stemmer', help='Disable stemmer', action='store_false')
 parser.add_argument('--no-stop', help='Disable stop words', action='store_false')
 parser.add_argument('--no-tfidf', help='Disable tfidf - only freq', action='store_false')
+parser.add_argument('--no-norm', help='Disable number normalization', action='store_false')
 
 args = vars(parser.parse_args())
 print(args)
@@ -113,6 +115,7 @@ ANALYZER = args["analyzer"]
 STEMMER = args["no_stemmer"]
 STOPWORDS = args["no_stop"]
 TFIDF = args["no_tfidf"]
+NORMALIZE = args["no_norm"]
 
 
 download('stopwords')
@@ -127,6 +130,8 @@ def parse_csv(row):
         sentence = remove_stopwords(sentence)
     if STEMMER:
         sentence = extract_stemmer(sentence)
+    if NORMALIZE:
+        sentence = re.sub("[0-9]+(\.[0-9]+)?[^\s]*", "<number>", sentence)
 
     return sentence
 
