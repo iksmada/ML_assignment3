@@ -219,7 +219,7 @@ print(myDictStats)
 print(82 * '_')
 print('N Clusters\ttime\tinertia\tvariance\tsilhouette')
 #clusters = range(2, CLUSTERS + 1)
-clusters = range(CLUSTERS/2, CLUSTERS + 1)
+clusters = range(int(CLUSTERS/2), CLUSTERS + 1)
 
 def run_Kmeans(n):
     t0 = time()
