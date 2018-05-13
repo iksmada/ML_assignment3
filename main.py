@@ -8,7 +8,10 @@ import numpy as np
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn import cluster, metrics
+from sklearn import (manifold, datasets, decomposition, ensemble,
+                     discriminant_analysis, random_projection)
 import matplotlib.pyplot as plt
+from matplotlib import offsetbox
 
 from joblib import Parallel, delayed
 import multiprocessing
@@ -20,13 +23,11 @@ from nltk.stem import WordNetLemmatizer
 
 from wordcloud import WordCloud
 
-
+"""
 def rescale(x, min_new=0., max_new=255., min_original=-1, max_original=-1):
-    """
-        x numpy array like matrix
-        if min_original or  max_original are not explict given,
-        this funcition tries to use x.min() and x.max() to fit values
-        """
+    #    x numpy array like matrix
+    #    if min_original or  max_original are not explict given,
+    #    this funcition tries to use x.min() and x.max() to fit values
     if min_original == -1 or max_original == -1:
         min_original = x.min()
         max_original = x.max()
@@ -78,7 +79,7 @@ def create_dict(sentences):
     selected_words = dict(sorted_words[:FEATURES])
 
     return selected_words
-
+"""
 
 def remove_stopwords(sentence):
     cleaned = []
@@ -105,9 +106,11 @@ def extract_lemma(sentence):
 
 
 parser = argparse.ArgumentParser(description='K-Means with headlines')
+parser.add_argument('-s', '--size', type=int, help='Size of dataset to use', default=1000)
 parser.add_argument('-c', '--clusters', type=int, help='Max number of clusters to test', default=10)
 parser.add_argument('-f', '--features', type=int, help='Number of features per sample', default=10)
-parser.add_argument('-n', '--ngram', type=int, help='Number of word per gram', default=2)
+parser.add_argument('-n1', '--mingram', type=int, help='Min number of word per gram', default=2)
+parser.add_argument('-n2', '--maxgram', type=int, help='Max number of word per gram', default=2)
 parser.add_argument('-a', '--analyzer', type=str, help='Analyser of Ngram as word or char',
                     default='word', choices=("word", "char"))
 group = parser.add_mutually_exclusive_group(required=True)
@@ -119,9 +122,11 @@ parser.add_argument('--no-norm', help='Disable number normalization', action='st
 
 args = vars(parser.parse_args())
 print(args)
+SIZE = args["size"]
 CLUSTERS = args["clusters"]
 FEATURES = args["features"]
-NGRAM = args["ngram"]
+MINGRAM = args["mingram"]
+MAXGRAM = args["maxgram"]
 ANALYZER = args["analyzer"]
 STEMMER = args["no_stemmer"]
 STOPWORDS = args["no_stop"]
@@ -147,8 +152,7 @@ def parse_csv(row):
     if LEMMA:
         sentence = extract_lemma(sentence)
     if NORMALIZE:
-        sentence = re.sub("[0-9]+(\.[0-9]+)?[^\s]*", "<tagnumber>", sentence)
-
+        sentence = re.sub("[0-9]+(\.[0-9]+)?[^\s]*", "xtagnumberx", sentence)
     return sentence
 
 
@@ -157,6 +161,7 @@ with open('news_headlines.csv') as csvfile:
     # jump header
     next(rows, None)
     dates, original = zip(*rows)
+    original = original[:SIZE]
     if not STOPWORDS and not STEMMER:
         headlines = original
     else:
@@ -169,11 +174,17 @@ print("Unique reduced from " + str(len(headlines)) + " to " + str(len(unique_hea
 
 if TFIDF:
     # tf-idf
-    tf_transformer = TfidfVectorizer(max_features=FEATURES, ngram_range=(NGRAM, NGRAM), analyzer=ANALYZER)
+    tf_transformer = TfidfVectorizer(
+        max_features=FEATURES, 
+        ngram_range=(MINGRAM, MAXGRAM), 
+        analyzer=ANALYZER,
+        #max_df=0.95, min_df=0.001
+    )
     trainSamples = tf_transformer.fit_transform(unique_headlines)
     myDict = tf_transformer.vocabulary_
 else:
-
+    print("Deu pau!")
+    """
     dictName = "dict-n" + str(NGRAM) + "f" + str(FEATURES)
     try:
         with open('obj/' + dictName + '.pkl', 'rb') as f:
@@ -187,16 +198,28 @@ else:
 
     trainSamples = Parallel(n_jobs=num_cores)(
         delayed(feature_extract)(headline, myDict) for headline in unique_headlines)
+    """
 
 print("Most common n grams used as features, total " + str(len(myDict)))
 print(myDict)
+print("Most common n grams used as features, total " + str(len(myDict)))
+
+myDictStats = dict()
+for key in myDict.keys():
+    n_words = len(key.split())
+    if n_words in myDictStats.keys():
+        myDictStats[n_words] = myDictStats[n_words] + 1
+    else:
+        myDictStats[n_words] = 1
+print(myDictStats)
+
 
 # X_train, X_test = model_selection.train_test_split(trainSamples, train_size=0.8)
 
 print(82 * '_')
 print('N Clusters\ttime\tinertia\tvariance\tsilhouette')
-clusters = range(2, CLUSTERS + 1)
-
+#clusters = range(2, CLUSTERS + 1)
+clusters = range(CLUSTERS/2, CLUSTERS + 1)
 
 def run_Kmeans(n):
     t0 = time()
@@ -273,7 +296,27 @@ for label in labels:
     clusters[label].append(i)
     i = i + 1
 
+"""
+# print clustered headlines
+for label in clusters:
+    raw_input("...")
+    print("CLUSTER " + str(label))
+    for idx in clusters[label]:
+        print original[idx]
+"""
+"""
+print("Computing t-SNE embedding")
+tsne = manifold.TSNE(n_components=2, init='pca', random_state=0)
+t0 = time()
+visual = tsne.fit_transform(clusters)
 
+plot_embedding(visual,
+               "t-SNE embedding of the headlines (time %.2fs)" %
+               (time() - t0))
+
+plt.show()
+"""
+"""
 # make word clouds out of each cluster
 wordclouds = []
 for idx in clusters:
@@ -283,5 +326,5 @@ for idx in clusters:
     plt.title("Cluster " + str(idx))
     # plt.savefig("graphs/wordcloud-(2,2) " + str(i) + "-" + str(idx))
     plt.show()
-
+"""
 # print(metrics.accuracy_score(y_test, pred))
