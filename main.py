@@ -3,6 +3,7 @@ import operator
 import csv
 import pickle
 from time import time
+import numpy as np
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn import cluster, metrics
@@ -167,7 +168,7 @@ else:
         delayed(feature_extract)(headline, myDict) for headline in unique_headlines)
 
 print("Most common n grams used as features, total " + str(len(myDict)))
-print(myDict.keys())
+print(myDict)
 
 # X_train, X_test = model_selection.train_test_split(trainSamples, train_size=0.8)
 
@@ -182,7 +183,7 @@ def run_Kmeans(n):
     # model = cluster.KMeans(n_clusters=n, n_jobs=-1)
     model = cluster.KMeans(n_clusters=n, init='k-means++', max_iter=300, n_init=10, random_state=0, n_jobs=1)
 
-    distances = model.fit_transform(trainSamples)
+    labels = model.fit_predict(trainSamples)
 
     # cost
     cost = model.inertia_
@@ -192,13 +193,13 @@ def run_Kmeans(n):
     except ValueError:
         silhouette = 1
     # variance
-    variance = 0
-    i = 0
-    for label in model.labels_:
-        variance = variance + distances[i][label]
-        i = i + 1
+    count = []
+    for label in range(n):
+        count.append(np.count_nonzero(labels == label))
+    variance = np.std(count)
 
-    print('%-9s\t%.2fs\t%7i\t%8.0f\t%5.3f'
+
+    print('%-9s\t%.2fs\t%7i\t%8.0f\t%8.3f'
           % (str(n), (time() - t0), cost, variance, silhouette))
 
     return [cost, silhouette, variance]
@@ -235,6 +236,11 @@ n = int(input("For which number of clusters do you want to print the word cloud?
 print("Re training for %d clusters" % n)
 model = cluster.KMeans(n_clusters=n, init='k-means++', max_iter=500, n_init=10, random_state=0, n_jobs=-1)
 labels = model.fit_predict(trainSamples)
+count = []
+for label in range(n):
+    count.append(np.count_nonzero(labels == label))
+print("Distribution of samples per cluster")
+print(count)
 
 # separate clusters
 clusters = dict()
