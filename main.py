@@ -16,6 +16,7 @@ import multiprocessing
 from nltk.downloader import download
 from nltk.corpus import stopwords
 from nltk.stem.snowball import SnowballStemmer
+from nltk.stem import WordNetLemmatizer
 
 from wordcloud import WordCloud
 
@@ -95,13 +96,23 @@ def extract_stemmer(sentence):
     return " ".join(cleaned)
 
 
+def extract_lemma(sentence):
+    cleaned = []
+    for word in sentence.split():
+        cleaned.append(wlem.lemmatize(word))
+    # remove space in the begging
+    return " ".join(cleaned)
+
+
 parser = argparse.ArgumentParser(description='K-Means with headlines')
 parser.add_argument('-c', '--clusters', type=int, help='Max number of clusters to test', default=10)
 parser.add_argument('-f', '--features', type=int, help='Number of features per sample', default=10)
 parser.add_argument('-n', '--ngram', type=int, help='Number of word per gram', default=2)
 parser.add_argument('-a', '--analyzer', type=str, help='Analyser of Ngram as word or char',
                     default='word', choices=("word", "char"))
-parser.add_argument('--no-stemmer', help='Disable stemmer', action='store_false')
+group = parser.add_mutually_exclusive_group(required=True)
+group.add_argument('--no-lemma', help='Disable lemmatize', action='store_false')
+group.add_argument('--no-stemmer', help='Disable stemmer', action='store_false')
 parser.add_argument('--no-stop', help='Disable stop words', action='store_false')
 parser.add_argument('--no-tfidf', help='Disable tfidf - only freq', action='store_false')
 parser.add_argument('--no-norm', help='Disable number normalization', action='store_false')
@@ -116,11 +127,14 @@ STEMMER = args["no_stemmer"]
 STOPWORDS = args["no_stop"]
 TFIDF = args["no_tfidf"]
 NORMALIZE = args["no_norm"]
+LEMMA = args["no_lemma"]
 
 
 download('stopwords')
+download('wordnet')
 stop = set(stopwords.words('english'))
 stemmer = SnowballStemmer("english")
+wlem = WordNetLemmatizer()
 num_cores = multiprocessing.cpu_count()
 
 
@@ -130,6 +144,8 @@ def parse_csv(row):
         sentence = remove_stopwords(sentence)
     if STEMMER:
         sentence = extract_stemmer(sentence)
+    if LEMMA:
+        sentence = extract_lemma(sentence)
     if NORMALIZE:
         sentence = re.sub("[0-9]+(\.[0-9]+)?[^\s]*", "<tagnumber>", sentence)
 
