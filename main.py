@@ -226,7 +226,7 @@ plt.scatter(clusters, silhouette_scores)
 plt.plot(clusters, silhouette_scores)
 plt.title("Silhouette Score")
 axes = plt.gca()
-axes.set_ylim([axes.get_ylim()[0], 1.0])
+axes.set_ylim([axes.get_ylim()[0], min(1.0, axes.get_ylim()[1])])
 plt.xlabel("Clusters")
 plt.show()
 
