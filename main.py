@@ -199,8 +199,8 @@ def run_Kmeans(n):
         silhouette = 1
     # variance
     count = []
-    for label in range(n):
-        count.append(np.count_nonzero(labels == label))
+    for cluss in range(n):
+        count.append(np.count_nonzero(labels == cluss))
     variance = np.std(count)
 
 
