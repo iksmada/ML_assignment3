@@ -106,7 +106,7 @@ def extract_lemma(sentence):
 
 
 parser = argparse.ArgumentParser(description='K-Means with headlines')
-parser.add_argument('-s', '--size', type=int, help='Size of dataset to use', default=1000)
+parser.add_argument('-s', '--size', type=int, help='Size of dataset to use', default=-1)
 parser.add_argument('-c', '--clusters', type=int, help='Max number of clusters to test', default=10)
 parser.add_argument('-f', '--features', type=int, help='Number of features per sample', default=10)
 parser.add_argument('-n1', '--mingram', type=int, help='Min number of word per gram', default=2)
