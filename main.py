@@ -121,6 +121,7 @@ group.add_argument('--no-stemmer', help='Disable stemmer', action='store_false')
 parser.add_argument('--no-stop', help='Disable stop words', action='store_false')
 parser.add_argument('--no-tfidf', help='Disable tfidf - only freq', action='store_false')
 parser.add_argument('--no-norm', help='Disable number normalization', action='store_false')
+parser.add_argument('-v', '--verbose', help='Show more info for clustering', action='store_true')
 
 args = vars(parser.parse_args())
 print(args)
@@ -136,6 +137,7 @@ STOPWORDS = args["no_stop"]
 TFIDF = args["no_tfidf"]
 NORMALIZE = args["no_norm"]
 LEMMA = args["no_lemma"]
+VERBOSE = args["verbose"]
 
 
 download('stopwords')
@@ -244,8 +246,19 @@ def run_Kmeans(n):
     for cluss in range(n):
         count.append(np.count_nonzero(labels == cluss))
     variance = np.std(count)
-
-
+    if VERBOSE:
+        clusters = np.zeros((n, trainSamples.shape[1]))
+        i=0
+        for cluss in labels:
+            clusters[cluss] = clusters[cluss] + trainSamples[i]
+            i = i + 1
+        print(count)
+        i = 0
+        print("means:", end="")
+        for cluss in clusters:
+            print(" %f" % (sum(cluss/count[i])), end="")
+            i = i + 1
+        print("")
 
     print('%-9s\t%.2fs\t%7i\t%8i\t%10.3f'
           % (str(n), (time() - t0), cost, int(variance), silhouette))
