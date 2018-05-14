@@ -113,6 +113,7 @@ parser.add_argument('-n1', '--mingram', type=int, help='Min number of word per g
 parser.add_argument('-n2', '--maxgram', type=int, help='Max number of word per gram', default=2)
 parser.add_argument('-a', '--analyzer', type=str, help='Analyser of Ngram as word or char',
                     default='word', choices=("word", "char"))
+parser.add_argument('-F', '--filename', type=str, help='Name of the file containing the dataset', default='news_headlines.csv')
 group = parser.add_mutually_exclusive_group(required=True)
 group.add_argument('--no-lemma', help='Disable lemmatize', action='store_false')
 group.add_argument('--no-stemmer', help='Disable stemmer', action='store_false')
@@ -218,8 +219,8 @@ print(myDictStats)
 
 print(82 * '_')
 print('N Clusters\ttime\tinertia\tvariance\tsilhouette')
-#clusters = range(2, CLUSTERS + 1)
-clusters = range(int(CLUSTERS/2), CLUSTERS + 1)
+clusters = range(2, CLUSTERS + 1)
+#clusters = range(int(CLUSTERS/2), CLUSTERS + 1)
 
 def run_Kmeans(n):
     t0 = time()
