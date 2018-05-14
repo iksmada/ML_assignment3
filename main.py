@@ -113,7 +113,8 @@ parser.add_argument('-n1', '--mingram', type=int, help='Min number of word per g
 parser.add_argument('-n2', '--maxgram', type=int, help='Max number of word per gram', default=2)
 parser.add_argument('-a', '--analyzer', type=str, help='Analyser of Ngram as word or char',
                     default='word', choices=("word", "char"))
-parser.add_argument('-F', '--filename', type=str, help='Name of the file containing the dataset', default='news_headlines.csv')
+parser.add_argument('-i', '--filename', type=str, help='Name of the file containing the dataset',
+                    default='news_headlines.csv')
 group = parser.add_mutually_exclusive_group(required=True)
 group.add_argument('--no-lemma', help='Disable lemmatize', action='store_false')
 group.add_argument('--no-stemmer', help='Disable stemmer', action='store_false')
@@ -129,6 +130,7 @@ FEATURES = args["features"]
 MINGRAM = args["mingram"]
 MAXGRAM = args["maxgram"]
 ANALYZER = args["analyzer"]
+FILENAME = args["filename"]
 STEMMER = args["no_stemmer"]
 STOPWORDS = args["no_stop"]
 TFIDF = args["no_tfidf"]
@@ -157,7 +159,7 @@ def parse_csv(row):
     return sentence
 
 
-with open('news_headlines.csv') as csvfile:
+with open(FILENAME) as csvfile:
     rows = csv.reader(csvfile)
     # jump header
     next(rows, None)
