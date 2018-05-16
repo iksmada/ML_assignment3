@@ -23,64 +23,6 @@ from nltk.stem import WordNetLemmatizer
 
 from wordcloud import WordCloud
 
-"""
-def rescale(x, min_new=0., max_new=255., min_original=-1, max_original=-1):
-    #    x numpy array like matrix
-    #    if min_original or  max_original are not explict given,
-    #    this funcition tries to use x.min() and x.max() to fit values
-    if min_original == -1 or max_original == -1:
-        min_original = x.min()
-        max_original = x.max()
-
-    return ((max_new - min_new) / (max_original - min_original)) * (x - min_original) + min_new
-
-
-def ngram_extract(sentence, n=3):
-    # <s> marks start and end of sentence - WORSE
-    # sentence = "<s> " + sentence + " <s>"
-    words = sentence.split()
-    n_grams = []
-    for i in range(len(words) - n):
-        entry = ""
-        for j in range(n):
-            entry = entry + words[i + j] + " "
-        # bi[:-1] -> delete space in the end
-        n_grams.append(entry[:-1])
-
-    return n_grams
-
-
-def feature_extract(sentence, mydict):
-    features = []
-    bi_grams = ngram_extract(sentence, NGRAM)
-    for key in mydict.keys():
-        if key in bi_grams:
-            features.append(1)
-        else:
-            features.append(0)
-
-    return features
-
-
-def create_dict(sentences):
-    # count words freq
-    bi_count = dict()
-    for sentence in sentences:
-        bi_grams = ngram_extract(sentence, NGRAM)
-        for bi in bi_grams:
-            if bi in bi_count.keys():
-                bi_count[bi] = bi_count[bi] + 1
-            else:
-                bi_count[bi] = 1
-
-    # select n most common words
-    # sort by frequency
-    sorted_words = sorted(bi_count.items(), key=operator.itemgetter(1), reverse=True)
-    selected_words = dict(sorted_words[:FEATURES])
-
-    return selected_words
-"""
-
 def remove_stopwords(sentence):
     cleaned = []
     for word in sentence.split():
@@ -166,7 +108,7 @@ with open(FILENAME) as csvfile:
     # jump header
     next(rows, None)
     dates, original = zip(*rows)
-    original = original[:SIZE]
+    #original = original[:SIZE]
     if not STOPWORDS and not STEMMER:
         headlines = original
     else:
@@ -220,7 +162,7 @@ print(myDictStats)
 
 
 # X_train, X_test = model_selection.train_test_split(trainSamples, train_size=0.8)
-
+"""
 print(82 * '_')
 print('N Clusters\ttime\tinertia\tvariance\tsilhouette')
 clusters = range(2, CLUSTERS + 1)
@@ -254,9 +196,9 @@ def run_Kmeans(n):
             i = i + 1
         print(count)
         i = 0
-        print("means:", end="")
+        print("means:"),
         for cluss in clusters:
-            print(" %f" % (sum(cluss/count[i])), end="")
+            print(" %f" % (sum(cluss/count[i]))),
             i = i + 1
         print("")
 
@@ -274,8 +216,9 @@ costs, silhouette_scores, variances = zip(*stats)
 # plot
 plt.scatter(clusters, costs)
 plt.plot(clusters, costs)
-plt.title("Cost")
-plt.xlabel("Clusters")
+plt.title("Cost (Inertia)")
+plt.xlabel("Number of Clusters")
+plt.savefig('cost')
 plt.show()
 
 plt.scatter(clusters, silhouette_scores)
@@ -283,64 +226,68 @@ plt.plot(clusters, silhouette_scores)
 plt.title("Silhouette Score")
 axes = plt.gca()
 axes.set_ylim([max(0, axes.get_ylim()[0]), min(1.0, axes.get_ylim()[1])])
-plt.xlabel("Clusters")
+plt.xlabel("Number of Clusters")
+plt.savefig('silhouette')
 plt.show()
 
 plt.scatter(clusters, variances)
 plt.plot(clusters, variances)
-plt.title("Variance")
-plt.xlabel("Clusters")
+plt.title("Standard Deviation")
+plt.xlabel("Number of Clusters")
+plt.savefig('variance')
 plt.show()
-
+"""
 # print word cloud
 n = int(input("For which number of clusters do you want to print the word cloud? From 2 to " + str(CLUSTERS)))
-print("Re training for %d clusters" % n)
-model = cluster.KMeans(n_clusters=n, init='k-means++', max_iter=500, n_init=10, random_state=0, n_jobs=-1)
-labels = model.fit_predict(trainSamples)
-count = []
-for label in range(n):
-    count.append(np.count_nonzero(labels == label))
-print("Distribution of samples per cluster")
-print(count)
+while (n != -1):
+    print("Re training for %d clusters" % n)
+    model = cluster.KMeans(n_clusters=n, init='k-means++', max_iter=500, n_init=10, random_state=0, n_jobs=-1)
+    labels = model.fit_predict(trainSamples)
+    count = []
+    for label in range(n):
+        count.append(np.count_nonzero(labels == label))
+    print("Distribution of samples per cluster")
+    print(count)
 
-# separate clusters
-clusters = dict()
-i = 0
-for label in labels:
-    if label not in clusters:
-        clusters[label] = []
-    clusters[label].append(i)
-    i = i + 1
+    # separate clusters
+    clusters = dict()
+    i = 0
+    for label in labels:
+        if label not in clusters:
+            clusters[label] = []
+        clusters[label].append(i)
+        i = i + 1
 
-"""
-# print clustered headlines
-for label in clusters:
-    raw_input("...")
-    print("CLUSTER " + str(label))
-    for idx in clusters[label]:
-        print original[idx]
-"""
-"""
-print("Computing t-SNE embedding")
-tsne = manifold.TSNE(n_components=2, init='pca', random_state=0)
-t0 = time()
-visual = tsne.fit_transform(clusters)
+    """
+    # print clustered headlines
+    for label in clusters:
+        raw_input("...")
+        print("CLUSTER " + str(label))
+        for idx in clusters[label]:
+            print original[idx]
+    """
+    """
+    print("Computing t-SNE embedding")
+    tsne = manifold.TSNE(n_components=2, init='pca', random_state=0)
+    t0 = time()
+    visual = tsne.fit_transform(clusters)
 
-plot_embedding(visual,
-               "t-SNE embedding of the headlines (time %.2fs)" %
-               (time() - t0))
+    plot_embedding(visual,
+                   "t-SNE embedding of the headlines (time %.2fs)" %
+                   (time() - t0))
 
-plt.show()
-"""
-"""
-# make word clouds out of each cluster
-wordclouds = []
-for idx in clusters:
-    wordclouds.append(WordCloud().generate(" ".join(operator.itemgetter(*clusters[idx])(unique_headlines))))
-    plt.imshow(wordclouds[idx], interpolation='bilinear')
-    plt.axis("off")
-    plt.title("Cluster " + str(idx))
-    # plt.savefig("graphs/wordcloud-(2,2) " + str(i) + "-" + str(idx))
     plt.show()
-"""
-# print(metrics.accuracy_score(y_test, pred))
+    """
+
+    # make word clouds out of each cluster
+    wordclouds = []
+    for idx in clusters:
+        wordclouds.append(WordCloud().generate(" ".join(operator.itemgetter(*clusters[idx])(unique_headlines))))
+        plt.imshow(wordclouds[idx], interpolation='bilinear')
+        plt.axis("off")
+        plt.title("Cluster " + str(idx))
+        plt.savefig("wordcloud-" + str(n) + "-" + str(idx))
+        #plt.show()
+
+    # print(metrics.accuracy_score(y_test, pred))
+    n = int(input("For which number of clusters do you want to print the word cloud? From 2 to " + str(CLUSTERS)))
