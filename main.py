@@ -99,7 +99,7 @@ def parse_csv(row):
     if LEMMA:
         sentence = extract_lemma(sentence)
     if NORMALIZE:
-        sentence = re.sub("[0-9]+(\.[0-9]+)?[^\s]*", "xtagnumberx", sentence)
+        sentence = re.sub("[0-9]+(\.[0-9]+)?[^\s]*", "", sentence)
     return sentence
 
 
